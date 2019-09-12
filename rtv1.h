@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/10 13:30:28 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/12 17:58:49 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,18 @@
 # include <time.h>
 # include <stdlib.h>
 
+typedef struct	s_ray
+{
+	t_vector3	*pos;
+	t_vector3	*dir;
+}				t_ray;
+
+typedef struct	s_sphere
+{
+	t_vector3	*pos;
+	double		radius;
+}				t_sphere;
+
 typedef struct	s_mlx
 {
 	void		*mlx_ptr;
@@ -35,21 +47,9 @@ typedef struct	s_mlx
 	int			endian;
 }				t_mlx;
 
-void			mandelbrot(t_mlx *mlx);
-void			plot(int x, int y, t_mlx *mlx, int iteration);
-void			redraw(t_mlx *mlx);
-void			zoom_in(t_mlx *mlx);
-void			zoom_out(t_mlx *mlx);
-void			julia(t_mlx *mlx);
-void			burning_ship(t_mlx *mlx);
-void			tricorn(t_mlx *mlx);
-void			fill_background(t_mlx *mlx, int width, int height);
-int				mouse_pressed(int button, int x, int y, void *param);
-int				mouse_moved(int x, int y, void *param);
+
 int				deal_key(int key, void *param);
 int				win_close(void *param);
-void			display_controls(t_mlx *mlx);
 void			initialize_mlx(t_mlx *mlx);
-int				check_args(int argc, char **argv);
 
 #endif

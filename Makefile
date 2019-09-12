@@ -6,12 +6,12 @@
 #    By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/13 12:50:22 by nkellum           #+#    #+#              #
-#    Updated: 2019/09/10 13:30:05 by nkellum          ###   ########.fr        #
+#    Updated: 2019/09/12 17:59:31 by nkellum          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = rtv1
-SRC = main.c
+SRC = main.c event.c
 OBJ = $(SRC:.c=.o)
 
 # This is a minimal set of ANSI/VT100 color codes
@@ -33,7 +33,7 @@ _WHITE=\x1b[37m
 
 all: $(NAME)
 
-$(NAME): $(SRC)
+$(NAME): rtv1.h $(SRC)
 	@ make -C libft
 	@ make -C minilibx_macos
 	@cc -o $(NAME) -I /usr/local/include $(SRC) -L ./minilibx_macos -lmlx \
