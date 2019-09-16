@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/16 15:32:10 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/16 16:47:05 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	plot(int x, int y, t_mlx *mlx, double white)
 	index = 4 * (y * WIDTH) + 4 * x;
 	// printf("white times 255 %d\n", (char)(white * 255.0));
 	mlx->img_str[index] = (char)(white * 255.0);
-	mlx->img_str[index + 1] = (char)(white * 255.0);
+	mlx->img_str[index + 1] = (char)(white * 0.0);
 	mlx->img_str[index + 2] = (char)(white * 255.0);
 }
 
@@ -110,8 +110,8 @@ int	main(int argc, char **argv)
 		return (0);
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
-	sphere->pos = new_vector3(0, 0 , -50);
-	sphere->radius = 100.0;
+	sphere->pos = new_vector3(0, 0, 0);
+	sphere->radius = 150.0;
 	eye->pos = new_vector3(0, 0, -200);
 	screen = new_vector3(-WIDTH / 2, -HEIGHT / 2, -100);
 
@@ -137,14 +137,14 @@ int	main(int argc, char **argv)
 				hit_point = add_vector3(eye->pos, hit_line, 0);
 				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
 				normalize(sphere_normal);
-				t_vector3 *view_normal = new_vector3(-eye->dir->x, -eye->dir->y,
-				-eye->dir->z);
+				t_vector3 *view_normal = new_vector3(-1, -0.5,
+				-0.3);
 				double facing_ratio = scal_vector3(sphere_normal, view_normal, 0);
 				if(facing_ratio > 0.0)
 					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
 			}
 			else
-				plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0.3);
+				plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0);
 			screen->x++;
 		}
 		screen->y++;
