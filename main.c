@@ -6,27 +6,28 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/12 18:13:52 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/16 15:32:10 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-void	plot(int x, int y, t_mlx *mlx, int white)
+void	plot(int x, int y, t_mlx *mlx, double white)
 {
 	int index;
 
-	index = 4 * (y * 600) + 4 * x;
-	mlx->img_str[index] = (char)white;
-	mlx->img_str[index + 1] = (char)white;
-	mlx->img_str[index + 2] = (char)white;
+	index = 4 * (y * WIDTH) + 4 * x;
+	// printf("white times 255 %d\n", (char)(white * 255.0));
+	mlx->img_str[index] = (char)(white * 255.0);
+	mlx->img_str[index + 1] = (char)(white * 255.0);
+	mlx->img_str[index + 2] = (char)(white * 255.0);
 }
 
 void	initialize_mlx(t_mlx *mlx)
 {
 	mlx->mlx_ptr = mlx_init();
-	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, 600, 600, "RTv1");
-	mlx->img_ptr = mlx_new_image(mlx->mlx_ptr, 600, 600);
+	mlx->win_ptr = mlx_new_window(mlx->mlx_ptr, WIDTH, HEIGHT, "RTv1");
+	mlx->img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
 	mlx->img_str = mlx_get_data_addr(mlx->img_ptr, &(mlx->bpp),
 	&(mlx->size_line), &(mlx->endian));
 }
@@ -95,8 +96,10 @@ double intersect(t_ray *ray, t_sphere *sphere)
 int	main(int argc, char **argv)
 {
 	t_ray	*eye;
-	t_vector3 *vec = new_vector3(0, 50, 100);
-	t_vector3 *screen = new_vector3(-300, -300, -100);
+	t_vector3 *screen;
+	t_vector3 *hit_point;
+	t_vector3 *sphere_normal;
+	t_vector3 *hit_line;
 	t_sphere *sphere;
 	t_mlx	*mlx;
 
@@ -107,9 +110,10 @@ int	main(int argc, char **argv)
 		return (0);
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
-	sphere->pos = new_vector3(0, 0, 0);
+	sphere->pos = new_vector3(0, 0 , -50);
 	sphere->radius = 100.0;
 	eye->pos = new_vector3(0, 0, -200);
+	screen = new_vector3(-WIDTH / 2, -HEIGHT / 2, -100);
 
 
 	// printf("%f %f %f\normalizing...\n", vec->x, vec->y, vec->z);
@@ -118,19 +122,29 @@ int	main(int argc, char **argv)
 	int hitnum = 0;
 	double intersectdist = 0.0;
 
-	while(screen->y < 300.0)
+	while(screen->y < HEIGHT/ 2)
 	{
-		screen->x = -300.0;
-		while(screen->x < 300.0)
+		screen->x = -WIDTH / 2;
+		while(screen->x < WIDTH / 2)
 		{
 			eye->dir = sub_vector3(screen, eye->pos, 0);
 			normalize(eye->dir);
 			intersectdist = intersect(eye, sphere);
 			if(intersectdist)
-				plot(screen->x + 300, screen->y + 300, mlx, -intersectdist);
+			{
+				hit_line = new_vector3(eye->dir->x * intersectdist,
+				eye->dir->y * intersectdist, eye->dir->y * intersectdist);
+				hit_point = add_vector3(eye->pos, hit_line, 0);
+				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
+				normalize(sphere_normal);
+				t_vector3 *view_normal = new_vector3(-eye->dir->x, -eye->dir->y,
+				-eye->dir->z);
+				double facing_ratio = scal_vector3(sphere_normal, view_normal, 0);
+				if(facing_ratio > 0.0)
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
+			}
 			else
-				plot(screen->x + 300, screen->y + 300, mlx, 0);
-
+				plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0.3);
 			screen->x++;
 		}
 		screen->y++;

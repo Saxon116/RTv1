@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/12 17:58:49 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/16 14:50:57 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@
 # include <math.h>
 # include <time.h>
 # include <stdlib.h>
+
+#define WIDTH 1280
+#define HEIGHT 900
 
 typedef struct	s_ray
 {
