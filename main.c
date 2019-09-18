@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/16 16:47:05 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/18 17:16:16 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,9 @@ void	plot(int x, int y, t_mlx *mlx, double white)
 	int index;
 
 	index = 4 * (y * WIDTH) + 4 * x;
-	// printf("white times 255 %d\n", (char)(white * 255.0));
-	mlx->img_str[index] = (char)(white * 255.0);
-	mlx->img_str[index + 1] = (char)(white * 0.0);
-	mlx->img_str[index + 2] = (char)(white * 255.0);
+	mlx->img_str[index] = (char)(white * 100.0);
+	mlx->img_str[index + 1] = (char)(white * 255.0);
+	mlx->img_str[index + 2] = (char)(white * 50.0);
 }
 
 void	initialize_mlx(t_mlx *mlx)
@@ -93,9 +92,22 @@ double intersect(t_ray *ray, t_sphere *sphere)
 			return (t1);
 }
 
+double intersect_plane(t_ray *ray, t_ray *plane)
+{
+    // assuming vectors are all normalized
+    double denom = scal_vector3(plane->dir, ray->dir, 0);
+    if (denom > 1e-6) {
+        t_vector3 *p0l0 = sub_vector3(plane->pos, ray->pos, 0);
+        double t = scal_vector3(p0l0, plane->dir, 0) / denom;
+        return (t >= 0);
+    }
+    return 0;
+}
+
 int	main(int argc, char **argv)
 {
 	t_ray	*eye;
+	t_ray	*plane;
 	t_vector3 *screen;
 	t_vector3 *hit_point;
 	t_vector3 *sphere_normal;
@@ -108,12 +120,16 @@ int	main(int argc, char **argv)
 	initialize_mlx(mlx);
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
 		return (0);
+	if ((plane = malloc(sizeof(t_ray))) == NULL)
+		return (0);
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
 	sphere->pos = new_vector3(0, 0, 0);
 	sphere->radius = 150.0;
-	eye->pos = new_vector3(0, 0, -200);
+	eye->pos = new_vector3(0, 0, -300);
 	screen = new_vector3(-WIDTH / 2, -HEIGHT / 2, -100);
+	plane->pos = new_vector3(0, 0, 0);
+	plane->dir = new_vector3(0, 1, 0);
 
 
 	// printf("%f %f %f\normalizing...\n", vec->x, vec->y, vec->z);
@@ -129,6 +145,20 @@ int	main(int argc, char **argv)
 		{
 			eye->dir = sub_vector3(screen, eye->pos, 0);
 			normalize(eye->dir);
+			double t = intersect_plane(eye, plane);
+			if(t)
+			{
+				//plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 1);
+				t_vector3 *view_normal = new_vector3(-eye->dir->x, -eye->dir->y,
+				-eye->dir->z);
+				double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
+				//printf("facing_ratio is %f\n", facing_ratio);
+				facing_ratio = -facing_ratio;
+				if(facing_ratio > 1)
+					facing_ratio = 1;
+				if(facing_ratio > 0.0)
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
+			}
 			intersectdist = intersect(eye, sphere);
 			if(intersectdist)
 			{
@@ -137,14 +167,13 @@ int	main(int argc, char **argv)
 				hit_point = add_vector3(eye->pos, hit_line, 0);
 				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
 				normalize(sphere_normal);
-				t_vector3 *view_normal = new_vector3(-1, -0.5,
-				-0.3);
+				t_vector3 *view_normal = new_vector3(-1, 0, -0.5);
 				double facing_ratio = scal_vector3(sphere_normal, view_normal, 0);
 				if(facing_ratio > 0.0)
 					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
+				else
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0);
 			}
-			else
-				plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0);
 			screen->x++;
 		}
 		screen->y++;
