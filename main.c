@@ -6,20 +6,20 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/18 17:16:16 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/19 18:38:30 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-void	plot(int x, int y, t_mlx *mlx, double white)
+void	plot(int x, int y, t_mlx *mlx, double alpha, t_vector3 *color)
 {
 	int index;
 
 	index = 4 * (y * WIDTH) + 4 * x;
-	mlx->img_str[index] = (char)(white * 100.0);
-	mlx->img_str[index + 1] = (char)(white * 255.0);
-	mlx->img_str[index + 2] = (char)(white * 50.0);
+	mlx->img_str[index] = (char)(alpha * color->z);
+	mlx->img_str[index + 1] = (char)(alpha * color->y);
+	mlx->img_str[index + 2] = (char)(alpha * color->x);
 }
 
 void	initialize_mlx(t_mlx *mlx)
@@ -157,7 +157,7 @@ int	main(int argc, char **argv)
 				if(facing_ratio > 1)
 					facing_ratio = 1;
 				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, new_vector3(255,255,255));
 			}
 			intersectdist = intersect(eye, sphere);
 			if(intersectdist)
@@ -167,12 +167,16 @@ int	main(int argc, char **argv)
 				hit_point = add_vector3(eye->pos, hit_line, 0);
 				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
 				normalize(sphere_normal);
-				t_vector3 *view_normal = new_vector3(-1, 0, -0.5);
+				t_vector3 *view_normal = new_vector3(1, -1, -0.20);
 				double facing_ratio = scal_vector3(sphere_normal, view_normal, 0);
+				facing_ratio *= 2; // can be edited with light intensity
+				if(facing_ratio > 1)
+					facing_ratio = 1;
+
 				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio);
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, new_vector3(255,0,0));
 				else
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0);
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0, new_vector3(0,0,0));
 			}
 			screen->x++;
 		}
