@@ -6,7 +6,7 @@
 #    By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/13 12:50:22 by nkellum           #+#    #+#              #
-#    Updated: 2019/09/12 17:59:31 by nkellum          ###   ########.fr        #
+#    Updated: 2019/09/21 17:48:10 by nkellum          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,13 +38,13 @@ $(NAME): rtv1.h $(SRC)
 	@ make -C minilibx_macos
 	@cc -o $(NAME) -I /usr/local/include $(SRC) -L ./minilibx_macos -lmlx \
 	-lm -framework OpenGL -framework AppKit libft/libft.a
-	@echo "${_GREEN}Compiled fractol${_END}"
+	@echo "${_GREEN}Compiled rtv1${_END}"
 
 linux: $(SRC)
 	@ make -C libft
 	@gcc -o $(NAME) $(SRC) libft/libft.a -L./minilibx_linux -lmlx \
 	-lm -L/usr/include/../lib -lXext -lX11 -lm -lbsd
-	@echo "\e[36mCompiled fdf for Linux\e[0m"
+	@echo "\e[36mCompiled rtv1 for Linux\e[0m"
 
 %.o: %.c libft.h
 	@gcc $(FLAGS) -o $@ -c $<

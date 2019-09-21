@@ -6,20 +6,20 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/19 18:38:30 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/21 22:18:40 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-void	plot(int x, int y, t_mlx *mlx, double alpha, t_vector3 *color)
+void	plot(int x, int y, t_mlx *mlx, double alpha, double specular, t_vector3 *color)
 {
 	int index;
 
 	index = 4 * (y * WIDTH) + 4 * x;
-	mlx->img_str[index] = (char)(alpha * color->z);
-	mlx->img_str[index + 1] = (char)(alpha * color->y);
-	mlx->img_str[index + 2] = (char)(alpha * color->x);
+	mlx->img_str[index] = (char)ft_constrain(alpha * color->z + specular * 100, 0, 255);
+	mlx->img_str[index + 1] = (char)ft_constrain(alpha * color->y + specular * 100, 0, 255);
+	mlx->img_str[index + 2] = (char)ft_constrain(alpha * color->x + specular * 100, 0, 255);
 }
 
 void	initialize_mlx(t_mlx *mlx)
@@ -29,29 +29,6 @@ void	initialize_mlx(t_mlx *mlx)
 	mlx->img_ptr = mlx_new_image(mlx->mlx_ptr, WIDTH, HEIGHT);
 	mlx->img_str = mlx_get_data_addr(mlx->img_ptr, &(mlx->bpp),
 	&(mlx->size_line), &(mlx->endian));
-}
-
-double solveQuadratic(double a, double b, double c)
-{
-    double discr = b * b - 4 * a * c;
-	double x0, x1;
-    if (discr < 0)
-		return (0);
-    else if (discr == 0)
-		x0 = x1 = - 0.5 * b / a;
-    else {
-        double q = (b > 0) ?
-            -0.5 * (b + sqrt(discr)) :
-            -0.5 * (b - sqrt(discr));
-        x0 = q / a;
-        x1 = c / q;
-    }
-	if(x0 <= 0 && x1 <= 0)
-		return (0);
-    if (x0 < x1)
-    	return (x0);
-	else
-		return (x1);
 }
 
 void	normalize(t_vector3 *vec)
@@ -66,30 +43,23 @@ void	normalize(t_vector3 *vec)
 
 double intersect(t_ray *ray, t_sphere *sphere)
 {
-        double t0, t1; // solutions for t if the ray intersects
-        // geometric solution
-        t_vector3 *L = sub_vector3(sphere->pos, ray->pos, 0);
-        float tca = scal_vector3(L, ray->dir, 0);
-        if (tca < 0)
-			return (0);
-        float d2 = scal_vector3(L, L, 0) - tca * tca;
-        if (d2 > pow(sphere->radius, 2))
-			return (0);
-        float thc = sqrt(pow(sphere->radius, 2) - d2);
-        t0 = tca - thc;
-        t1 = tca + thc;
-        // analytic solution
-        // double a = scal_vector3(ray->dir, ray->dir, 0);
-        // double b = 2 * scal_vector3(ray->dir, L, 0);
-        // double c = scal_vector3(L, L, 0) - pow(sphere->radius, 2);
-		// return (solveQuadratic(a, b, c));
-
-		if(t0 <= 0 && t1 <= 0)
-			return (0);
-	    if (t0 < t1)
-	    	return (t0);
-		else
-			return (t1);
+	double t0, t1;
+	t_vector3 *L = sub_vector3(sphere->pos, ray->pos, 0);
+	float tca = scal_vector3(L, ray->dir, 0);
+	if (tca < 0)
+		return (0);
+	float d2 = scal_vector3(L, L, 0) - tca * tca;
+	if (d2 > pow(sphere->radius, 2))
+		return (0);
+	float thc = sqrt(pow(sphere->radius, 2) - d2);
+	t0 = tca - thc;
+	t1 = tca + thc;
+	if(t0 <= 0 && t1 <= 0)
+		return (0);
+	if (t0 < t1)
+		return (t0);
+	else
+		return (t1);
 }
 
 double intersect_plane(t_ray *ray, t_ray *plane)
@@ -102,6 +72,16 @@ double intersect_plane(t_ray *ray, t_ray *plane)
         return (t >= 0);
     }
     return 0;
+}
+
+t_vector3 *reflect(t_vector3 *light, t_vector3 *normal)
+{
+		float dotprod = 2 * scal_vector3(normal, light, 0);
+		normal->x *= dotprod;
+		normal->y *= dotprod;
+		normal->z *= dotprod;
+
+		return sub_vector3(normal, light, 0);
 }
 
 int	main(int argc, char **argv)
@@ -157,26 +137,32 @@ int	main(int argc, char **argv)
 				if(facing_ratio > 1)
 					facing_ratio = 1;
 				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, new_vector3(255,255,255));
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, 0,  new_vector3(255,255,255));
 			}
 			intersectdist = intersect(eye, sphere);
 			if(intersectdist)
 			{
 				hit_line = new_vector3(eye->dir->x * intersectdist,
-				eye->dir->y * intersectdist, eye->dir->y * intersectdist);
+				eye->dir->y * intersectdist, eye->dir->z * intersectdist);
 				hit_point = add_vector3(eye->pos, hit_line, 0);
 				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
 				normalize(sphere_normal);
-				t_vector3 *view_normal = new_vector3(1, -1, -0.20);
-				double facing_ratio = scal_vector3(sphere_normal, view_normal, 0);
-				facing_ratio *= 2; // can be edited with light intensity
+				t_vector3 *light_dir = new_vector3(1, -1, -0.8);
+				double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
+				facing_ratio *= 0.5; // can be edited with light intensity
+
+				t_vector3 *r = reflect(light_dir, sphere_normal);
+				normalize(r);
+				t_vector3 *v = new_vector3(-eye->dir->x,
+				-eye->dir->y, -eye->dir->z);
+				double specular = pow(scal_vector3(r, v, 0), 400);
+
 				if(facing_ratio > 1)
 					facing_ratio = 1;
-
 				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, new_vector3(255,0,0));
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, specular, new_vector3(147,233,190));
 				else
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0, new_vector3(0,0,0));
+					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0, 0, new_vector3(0,0,0));
 			}
 			screen->x++;
 		}
