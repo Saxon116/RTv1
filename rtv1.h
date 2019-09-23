@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/16 16:04:31 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/23 18:49:32 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,20 @@ typedef struct	s_sphere
 	t_vector3	*pos;
 	double		radius;
 }				t_sphere;
+
+typedef struct	s_cone
+{
+	t_vector3	*pos;
+	t_vector3	*dir;
+	double		theta;
+}				t_cone;
+
+typedef struct	s_cylinder
+{
+	t_vector3	*pos;
+	t_vector3	*dir;
+	double		radius;
+}				t_cylinder;
 
 typedef struct	s_mlx
 {

@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/23 12:48:51 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/23 20:43:05 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,12 +99,60 @@ double solveQuadratic(double a, double b, double c)
         x0 = q / a;
         x1 = c / q;
     }
-	if(x0 <= 0 && x1 <= 0)
+	if(x0 <= 0.0 && x1 <= 0.0)
+	{
+		//printf("x0 is %f and x1 is %f\n", x0 , x1);
 		return (0);
-    if (x0 < x1)
-    	return (x0);
-	else
+	}
+	if(x0 < 0)
+	{
+		//printf("x0 is %f and [x1] is %f\n", x0 , x1);
 		return (x1);
+	}
+	if(x1 < 0)
+	{
+		//printf("[x0] is %f and x1 is %f\n", x0 , x1);
+		return (x0);
+	}
+    if (x0 < x1)
+	{
+		//printf("[x0] is %f and x1 is %f\n", x0 , x1);
+    	return (x0);
+	}
+	else
+	{
+		//printf("x0 is %f and [x1] is %f\n", x0 , x1);
+		return (x1);
+	}
+}
+
+double intersect_cone(t_ray *ray, t_cone *cone)
+{
+	double theta_rad = cone->theta * (M_PI/180);
+	double cos_sqrd = pow(cos(theta_rad), 2);
+	t_vector3 *co = new_vector3(cone->pos->x * ray->pos->x, cone->pos->y * ray->pos->y, cone->pos->z * ray->pos->z);
+	t_vector3 *co_cos = new_vector3(co->x * cos_sqrd, co->y * cos_sqrd, co->z * cos_sqrd);
+	double a = pow(scal_vector3(ray->dir, cone->dir, 0), 2) - cos_sqrd;
+	double b = 2 * (scal_vector3(ray->dir, cone->dir, 0) * scal_vector3(co, cone->dir, 0)
+	- scal_vector3(ray->dir, co_cos, 0));
+	double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, co_cos, 0);
+
+	return solveQuadratic(a, b, c);
+
+}
+
+double intersect_cylinder(t_ray *ray, t_cylinder *cylinder)
+{
+	t_vector3 *ab = sub_vector3(cylinder->dir, cylinder->pos, 0);
+	t_vector3 *ao = sub_vector3(ray->pos, cylinder->pos, 0);
+	t_vector3 *aoxab = mul_vector3(ao, ab, 0);
+	t_vector3 *vxab = mul_vector3(ray->dir, ab, 0);
+	double ab2 = scal_vector3(ab, ab, 0);
+	double a = scal_vector3(vxab, vxab, 0);
+	double b = 2 * scal_vector3(vxab, aoxab, 0);
+	double c = scal_vector3(aoxab, aoxab, 0) - (cylinder->radius * cylinder->radius * ab2);
+
+	return solveQuadratic(a, b, c);
 }
 
 int	main(int argc, char **argv)
@@ -116,6 +164,8 @@ int	main(int argc, char **argv)
 	t_vector3 *sphere_normal;
 	t_vector3 *hit_line;
 	t_sphere *sphere;
+	t_cone *cone;
+	t_cylinder *cylinder;
 	t_mlx	*mlx;
 
 	if ((mlx = malloc(sizeof(t_mlx))) == NULL)
@@ -127,17 +177,28 @@ int	main(int argc, char **argv)
 		return (0);
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
+	if ((cone = malloc(sizeof(t_cone))) == NULL)
+		return (0);
+	if ((cylinder = malloc(sizeof(t_cylinder))) == NULL)
+		return (0);
+	cone->pos = new_vector3(0, 0, 1);
+	cone->dir = new_vector3(0, 1, 0);
+	cone->theta = 30.0;
+
+	cylinder->pos = new_vector3(0, 0, 0);
+	cylinder->dir = new_vector3(0, 1, 0);
+	cylinder->radius = 150.0;
+
 	sphere->pos = new_vector3(0, 0, 0);
 	sphere->radius = 150.0;
-	eye->pos = new_vector3(0, 0, -300);
+
+	eye->pos = new_vector3(0, 0, -200);
 	screen = new_vector3(-WIDTH / 2, -HEIGHT / 2, -100);
+
 	plane->pos = new_vector3(0, 0, 0);
 	plane->dir = new_vector3(0, 1, 0);
 
 
-	// printf("%f %f %f\normalizing...\n", vec->x, vec->y, vec->z);
-	// normalize(vec);
-	// printf("%f %f %f\n", vec->x, vec->y, vec->z);
 	int hitnum = 0;
 	double intersectdist = 0.0;
 
@@ -148,45 +209,48 @@ int	main(int argc, char **argv)
 		{
 			eye->dir = sub_vector3(screen, eye->pos, 0);
 			normalize(eye->dir);
-			double t = intersect_plane(eye, plane);
-			if(t)
-			{
-				//plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 1);
-				t_vector3 *view_normal = new_vector3(-eye->dir->x,
-				-eye->dir->y, -eye->dir->z);
-				double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
-				//printf("facing_ratio is %f\n", facing_ratio);
-				facing_ratio = -facing_ratio;
-				if(facing_ratio > 1)
-					facing_ratio = 1;
-				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, 0,  new_vector3(255,255,255));
-			}
-			intersectdist = intersect(eye, sphere);
-			if(intersectdist)
-			{
-				hit_line = new_vector3(eye->dir->x * intersectdist,
-				eye->dir->y * intersectdist, eye->dir->z * intersectdist);
-				hit_point = add_vector3(eye->pos, hit_line, 0);
-				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
-				normalize(sphere_normal);
-				t_vector3 *light_dir = new_vector3(1, -1, -0.8);
-				double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
-				facing_ratio *= 0.5; // can be edited with light intensity
-
-				t_vector3 *r = reflect(light_dir, sphere_normal);
-				normalize(r);
-				t_vector3 *v = new_vector3(-eye->dir->x,
-				-eye->dir->y, -eye->dir->z);
-				double specular = pow(scal_vector3(r, v, 0), 200);
-
-				if(facing_ratio > 1)
-					facing_ratio = 1;
-				if(facing_ratio > 0.0)
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, specular, new_vector3(147,233,190));
-				else
-					plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0, 0, new_vector3(0,0,0));
-			}
+			// double t = intersect_plane(eye, plane);
+			// if(t)
+			// {
+			// 	//plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 1);
+			// 	t_vector3 *view_normal = new_vector3(-eye->dir->x,
+			// 	-eye->dir->y, -eye->dir->z);
+			// 	double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
+			// 	//printf("facing_ratio is %f\n", facing_ratio);
+			// 	facing_ratio = -facing_ratio;
+			// 	if(facing_ratio > 1)
+			// 		facing_ratio = 1;
+			// 	if(facing_ratio > 0.0)
+			// 		plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, 0,  new_vector3(255,255,255));
+			// }
+			// intersectdist = intersect(eye, sphere);
+			// if(intersectdist)
+			// {
+			// 	hit_line = new_vector3(eye->dir->x * intersectdist,
+			// 	eye->dir->y * intersectdist, eye->dir->z * intersectdist);
+			// 	hit_point = add_vector3(eye->pos, hit_line, 0);
+			// 	sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
+			// 	normalize(sphere_normal);
+			// 	t_vector3 *light_dir = new_vector3(1, -1, -0.8);
+			// 	double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
+			// 	facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+			//
+			// 	t_vector3 *r = reflect(light_dir, sphere_normal);
+			// 	normalize(r);
+			// 	t_vector3 *v = new_vector3(-eye->dir->x,
+			// 	-eye->dir->y, -eye->dir->z);
+			// 	double specular = pow(scal_vector3(r, v, 0), 400);
+			//
+			// 	if(facing_ratio > 1)
+			// 		facing_ratio = 1;
+			// 	if(facing_ratio > 0.0)
+			// 		plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, facing_ratio, specular, new_vector3(147,233,190));
+			// 	else
+			// 		plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 0, 0, new_vector3(0,0,0));
+			// }
+			double intersect = intersect_cylinder(eye, cylinder);
+			if(intersect)
+				plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, intersect/500, 0, new_vector3(255,255,255));
 			screen->x++;
 		}
 		screen->y++;
