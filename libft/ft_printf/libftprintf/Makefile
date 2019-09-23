@@ -6,12 +6,17 @@
 #    By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/13 12:50:22 by nkellum           #+#    #+#              #
-#    Updated: 2019/09/21 17:48:10 by nkellum          ###   ########.fr        #
+#    Updated: 2019/04/25 13:32:29 by nkellum          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = rtv1
-SRC = main.c event.c
+NAME = libftprintf.a
+SRC = ft_putchar.c ft_putstr.c ft_putnbr.c ft_strchr.c ft_strsub.c \
+ft_isdigit.c ft_atoi.c ft_itoa_base.c ft_strlen.c ft_atoi_base.c ft_uputnbr.c \
+contains.c num_length.c
+
+
+
 OBJ = $(SRC:.c=.o)
 
 # This is a minimal set of ANSI/VT100 color codes
@@ -30,32 +35,19 @@ _PURPLE=\x1b[35m
 _CYAN=\x1b[36m
 _WHITE=\x1b[37m
 
-
 all: $(NAME)
 
-$(NAME): rtv1.h $(SRC)
-	@ make -C libft
-	@ make -C minilibx_macos
-	@cc -o $(NAME) -I /usr/local/include $(SRC) -L ./minilibx_macos -lmlx \
-	-lm -framework OpenGL -framework AppKit libft/libft.a
-	@echo "${_GREEN}Compiled rtv1${_END}"
+$(NAME): $(SRC)
+	@gcc -Wall -Wextra -Werror -c $(SRC)
+	@ar rc $(NAME) $(OBJ)
+	@ranlib $(NAME)
+	@echo "${_CYAN}Compiled LibftPrintf${_END}"
 
-linux: $(SRC)
-	@ make -C libft
-	@gcc -o $(NAME) $(SRC) libft/libft.a -L./minilibx_linux -lmlx \
-	-lm -L/usr/include/../lib -lXext -lX11 -lm -lbsd
-	@echo "\e[36mCompiled rtv1 for Linux\e[0m"
-
-%.o: %.c libft.h
-	@gcc $(FLAGS) -o $@ -c $<
 
 clean:
 	@rm -f $(OBJ)
-	@make -C libft clean
 
 fclean: clean
 	@rm -f $(NAME)
-	@make -C libft fclean
-	@make -C minilibx_macos clean
 
 re: fclean all

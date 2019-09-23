@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/21 22:18:40 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/23 12:48:51 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,29 @@ t_vector3 *reflect(t_vector3 *light, t_vector3 *normal)
 		return sub_vector3(normal, light, 0);
 }
 
+double solveQuadratic(double a, double b, double c)
+{
+    double discr = b * b - 4 * a * c;
+	double x0, x1;
+    if (discr < 0)
+		return (0);
+    else if (discr == 0)
+		x0 = x1 = - 0.5 * b / a;
+    else {
+        double q = (b > 0) ?
+            -0.5 * (b + sqrt(discr)) :
+            -0.5 * (b - sqrt(discr));
+        x0 = q / a;
+        x1 = c / q;
+    }
+	if(x0 <= 0 && x1 <= 0)
+		return (0);
+    if (x0 < x1)
+    	return (x0);
+	else
+		return (x1);
+}
+
 int	main(int argc, char **argv)
 {
 	t_ray	*eye;
@@ -129,8 +152,8 @@ int	main(int argc, char **argv)
 			if(t)
 			{
 				//plot(screen->x + WIDTH / 2, screen->y + HEIGHT/ 2, mlx, 1);
-				t_vector3 *view_normal = new_vector3(-eye->dir->x, -eye->dir->y,
-				-eye->dir->z);
+				t_vector3 *view_normal = new_vector3(-eye->dir->x,
+				-eye->dir->y, -eye->dir->z);
 				double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
 				//printf("facing_ratio is %f\n", facing_ratio);
 				facing_ratio = -facing_ratio;
@@ -155,7 +178,7 @@ int	main(int argc, char **argv)
 				normalize(r);
 				t_vector3 *v = new_vector3(-eye->dir->x,
 				-eye->dir->y, -eye->dir->z);
-				double specular = pow(scal_vector3(r, v, 0), 400);
+				double specular = pow(scal_vector3(r, v, 0), 200);
 
 				if(facing_ratio > 1)
 					facing_ratio = 1;
