@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/26 17:43:40 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/27 13:01:24 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ double intersect(t_ray *ray, t_sphere *sphere)
 double intersect_plane(t_ray *ray, t_ray *plane)
 {
     // assuming vectors are all normalized
+
     double denom = scal_vector3(plane->dir, ray->dir, 0);
     if (denom > 1e-6) {
         t_vector3 *p0l0 = sub_vector3(plane->pos, ray->pos, 0);
@@ -100,42 +101,39 @@ double solveQuadratic(double a, double b, double c)
         x1 = c / q;
     }
 	if(x0 <= 0.0 && x1 <= 0.0)
-	{
-		//printf("x0 is %f and x1 is %f\n", x0 , x1);
 		return (0);
-	}
 	if(x0 < 0)
-	{
-		//printf("x0 is %f and [x1] is %f\n", x0 , x1);
 		return (x1);
-	}
 	if(x1 < 0)
-	{
-		//printf("[x0] is %f and x1 is %f\n", x0 , x1);
 		return (x0);
-	}
     if (x0 < x1)
-	{
-		//printf("[x0] is %f and x1 is %f\n", x0 , x1);
     	return (x0);
-	}
 	else
-	{
-		//printf("x0 is %f and [x1] is %f\n", x0 , x1);
 		return (x1);
-	}
 }
 
 double intersect_cone(t_ray *ray, t_cone *cone)
 {
+	double dv = scal_vector3(ray->dir, cone->dir, 0);
 	double theta_rad = cone->theta * (M_PI/180);
-	double cos_sqrd = pow(cos(theta_rad), 2);
-	t_vector3 *co = new_vector3(cone->pos->x * ray->pos->x, cone->pos->y * ray->pos->y, cone->pos->z * ray->pos->z);
-	t_vector3 *co_cos = new_vector3(co->x * cos_sqrd, co->y * cos_sqrd, co->z * cos_sqrd);
-	double a = pow(scal_vector3(ray->dir, cone->dir, 0), 2) - cos_sqrd;
-	double b = 2 * (scal_vector3(ray->dir, cone->dir, 0) * scal_vector3(co, cone->dir, 0)
-	- scal_vector3(ray->dir, co_cos, 0));
-	double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, co_cos, 0);
+	double a = pow(dv, 2) - pow(cos(theta_rad), 2);
+
+	t_vector3 *co = sub_vector3(ray->pos, cone->pos, 0);
+	t_vector3 *cos_theta = new_vector3(0, 0, 0);
+	cos_theta->x = co->x * pow(cos(theta_rad), 2);
+	cos_theta->y = co->y * pow(cos(theta_rad), 2);
+	cos_theta->z = co->z * pow(cos(theta_rad), 2);
+	double b = 2 * (dv * scal_vector3(co, cone->dir, 0) - scal_vector3(ray->dir, cos_theta, 0));
+	double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, cos_theta, 0);
+
+	// double theta_rad = cone->theta * (M_PI/180);
+	// double cos_sqrd = pow(cos(theta_rad), 2);
+	// t_vector3 *co = new_vector3(cone->pos->x * ray->pos->x, cone->pos->y * ray->pos->y, cone->pos->z * ray->pos->z);
+	// t_vector3 *co_cos = new_vector3(co->x * cos_sqrd, co->y * cos_sqrd, co->z * cos_sqrd);
+	// double a = pow(scal_vector3(ray->dir, cone->dir, 0), 2) - cos_sqrd;
+	// double b = 2 * (scal_vector3(ray->dir, cone->dir, 0) * scal_vector3(co, cone->dir, 0)
+	// - scal_vector3(ray->dir, co_cos, 0));
+	// double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, co_cos, 0);
 
 	return solveQuadratic(a, b, c);
 
@@ -143,6 +141,7 @@ double intersect_cone(t_ray *ray, t_cone *cone)
 
 double intersect_cylinder(t_ray *ray, t_cylinder *cylinder)
 {
+
 	t_vector3 *ab = sub_vector3(cylinder->dir, cylinder->pos, 0);
 	t_vector3 *ao = sub_vector3(ray->pos, cylinder->pos, 0);
 	t_vector3 *aoxab = mul_vector3(ao, ab, 0);
@@ -181,22 +180,29 @@ int	main(int argc, char **argv)
 		return (0);
 	if ((cylinder = malloc(sizeof(t_cylinder))) == NULL)
 		return (0);
-	cone->pos = new_vector3(0, 0, -100);
-	cone->dir = new_vector3(0, 1, 0);
-	cone->theta = 30.0;
 
-	cylinder->pos = new_vector3(0, 0, -40);
-	cylinder->dir = new_vector3(1, 0, 0);
-	cylinder->radius = 90.0;
+	cone->pos = new_vector3(0, 0, -50);
+	cone->dir = new_vector3(0, -1, 0);
+	cone->theta = 20.0;
 
-	sphere->pos = new_vector3(-10, 0, -10);
-	sphere->radius = 10.0;
+	cylinder->pos = new_vector3(0, 0, 1000);
+	cylinder->dir = new_vector3(0, 0, 0);
+	cylinder->radius = M_PI/2;
+	cylinder->dir->x *= -1;
+	cylinder->dir->y *= -1;
+	cylinder->dir->z *= -1;
+
+	sphere->pos = new_vector3(-5, 0, -200);
+	sphere->radius = 60.0;
 
 	eye->pos = new_vector3(0, 0, 0);
 
 
-	plane->pos = new_vector3(0, 0, 0);
-	plane->dir = new_vector3(0, -1, 0);
+	plane->pos = new_vector3(0, 10, 0);
+	plane->dir = new_vector3(1, -1, 0);
+	plane->dir->x *= -1;
+	plane->dir->y *= -1;
+	plane->dir->z *= -1;
 
 
 	int hitnum = 0;
@@ -204,6 +210,7 @@ int	main(int argc, char **argv)
 	double aspect_ratio = (double)WIDTH / (double)HEIGHT;
 	double fov = 90.0;
 	double scale = tan(fov / 2 * M_PI / 180);
+
 
 	int i;
 	int j = 0;
@@ -220,9 +227,10 @@ int	main(int argc, char **argv)
 			// double t = intersect_plane(eye, plane);
 			// if(t)
 			// {
-			// 	// plot(i, j, mlx, 1, 0,  new_vector3(255,255,255));
+			// 	//plot(i, j, mlx, 1, 0,  new_vector3(255,255,255));
 			// 	t_vector3 *view_normal = new_vector3(-eye->dir->x,
 			// 	-eye->dir->y, -eye->dir->z);
+			// 	//printf("%f %f %f\n", view_normal->x, view_normal->y, view_normal->z);
 			// 	double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
 			//
 			// 	facing_ratio = -facing_ratio;
@@ -231,34 +239,53 @@ int	main(int argc, char **argv)
 			// 	if(facing_ratio > 0.0)
 			// 		plot(i, j, mlx, facing_ratio, 0,  new_vector3(255,255,255));
 			// }
-			intersectdist = intersect(eye, sphere);
-			if(intersectdist)
+			// intersectdist = intersect(eye, sphere);
+			// if(intersectdist)
+			// {
+			// 	hit_line = new_vector3(eye->dir->x * intersectdist,
+			// 	eye->dir->y * intersectdist, eye->dir->z * intersectdist);
+			// 	hit_point = add_vector3(eye->pos, hit_line, 0);
+			// 	sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
+			// 	normalize(sphere_normal);
+			// 	t_vector3 *light_dir = new_vector3(1, 1, 0.8);
+			// 	double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
+			// 	facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+			//
+			// 	t_vector3 *r = reflect(light_dir, sphere_normal);
+			// 	normalize(r);
+			// 	t_vector3 *v = new_vector3(-eye->dir->x,
+			// 	-eye->dir->y, -eye->dir->z);
+			// 	double specular = pow(scal_vector3(r, v, 0), 400);
+			//
+			// 	if(facing_ratio > 1)
+			// 		facing_ratio = 1;
+			// 	if(facing_ratio > 0.0)
+			// 		plot(i, j, mlx, facing_ratio, specular, new_vector3(147,233,190));
+			// 	else
+			// 		plot(i, j, mlx, 0, 0, new_vector3(0,0,0));
+			// }
+			double intersect = intersect_cone(eye, cone);
+			if(intersect)
 			{
-				hit_line = new_vector3(eye->dir->x * intersectdist,
-				eye->dir->y * intersectdist, eye->dir->z * intersectdist);
-				hit_point = add_vector3(eye->pos, hit_line, 0);
-				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
-				normalize(sphere_normal);
-				t_vector3 *light_dir = new_vector3(1, 1, 0.8);
-				double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
-				facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+				t_vector3 *cp = new_vector3(eye->pos->x, eye->pos->y, eye->pos->z);
+				cp->x = cp->x + intersect * eye->dir->x - cone->pos->x;
+				cp->y = cp->y + intersect * eye->dir->y - cone->pos->y;
+				cp->z = cp->z + intersect * eye->dir->z - cone->pos->z;
 
-				t_vector3 *r = reflect(light_dir, sphere_normal);
-				normalize(r);
-				t_vector3 *v = new_vector3(-eye->dir->x,
-				-eye->dir->y, -eye->dir->z);
-				double specular = pow(scal_vector3(r, v, 0), 400);
+				cp->x = cp->x * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->x;
+				cp->y = cp->y * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->y;
+				cp->z = cp->z * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->z;
+
+				normalize(cp);
+
+				t_vector3 *light_dir = new_vector3(-1, 0, -1);
+				double facing_ratio = scal_vector3(cp, light_dir, 0);
+				//printf("facing_ratio = %f\n", facing_ratio);
 
 				if(facing_ratio > 1)
 					facing_ratio = 1;
-				if(facing_ratio > 0.0)
-					plot(i, j, mlx, facing_ratio, specular, new_vector3(147,233,190));
-				else
-					plot(i, j, mlx, 0, 0, new_vector3(0,0,0));
+				plot(i, j, mlx, facing_ratio, 0, new_vector3(150,150,150));
 			}
-			// double intersect = intersect_cone(eye, cone);
-			// if(intersect)
-			// 	plot(i, j, mlx, 1, 0, new_vector3(255,255,255));
 			i++;
 		}
 		j++;
