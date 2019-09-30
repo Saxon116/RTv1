@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/27 20:56:47 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/30 13:42:29 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ double intersect_plane(t_ray *ray, t_ray *plane)
     if (denom > 1e-6) {
         t_vector3 *p0l0 = sub_vector3(plane->pos, ray->pos, 0);
         double t = scal_vector3(p0l0, plane->dir, 0) / denom;
-        return (t >= 0);
+        return (t);
     }
     return 0;
 }
@@ -155,6 +155,7 @@ int	main(int argc, char **argv)
 	t_ray	*eye;
 	t_ray	*plane;
 	t_ray	*light_point;
+	t_ray *shadow_ray;
 	t_vector3 *screen;
 	t_vector3 *hit_point;
 	t_vector3 *sphere_normal;
@@ -170,6 +171,8 @@ int	main(int argc, char **argv)
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
 		return (0);
 	if ((plane = malloc(sizeof(t_ray))) == NULL)
+		return (0);
+	if ((shadow_ray = malloc(sizeof(t_ray))) == NULL)
 		return (0);
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
@@ -190,10 +193,10 @@ int	main(int argc, char **argv)
 	cylinder->dir = new_vector3(0, 0, 1);
 	cylinder->radius = 2;
 
-	light_point->pos = new_vector3(20, 20, -160);
+	light_point->pos = new_vector3(10, 20, -5);
 
-	sphere->pos = new_vector3(0, 0, -200);
-	sphere->radius = 60.0;
+	sphere->pos = new_vector3(0, -5, -20);
+	sphere->radius = 5.0;
 
 	eye->pos = new_vector3(0, 0, 0);
 
@@ -225,23 +228,48 @@ int	main(int argc, char **argv)
 			eye->dir = sub_vector3(screen, eye->pos, 0);
 			normalize(eye->dir);
 			double t = intersect_plane(eye, plane);
+			intersectdist = intersect(eye, sphere);
+			if(t && intersectdist)
+			{
+				if(t < intersectdist)
+					intersectdist = 0;
+				else
+					t = 0;
+			}
+
+			int light_brightness = 10000;
+
 			if(t)
 			{
 				//plot(i, j, mlx, 1, 0,  new_vector3(255,255,255));
-				t_vector3 *view_normal = new_vector3(-eye->dir->x,
-				-eye->dir->y, -eye->dir->z);
+				hit_line = new_vector3(eye->dir->x * t,
+				eye->dir->y * t, eye->dir->z * t);
+				hit_point = add_vector3(eye->pos, hit_line, 0);
 				//printf("%f %f %f\n", view_normal->x, view_normal->y, view_normal->z);
-				double facing_ratio = scal_vector3(plane->dir, view_normal, 0);
+				t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
+				double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
+				t_vector3 *lightIntensity = new_vector3(200, 200, 200);
 
-				facing_ratio = -facing_ratio;
-				if(facing_ratio > 1)
-					facing_ratio = 1;
-				if(facing_ratio > 0.0)
-					plot(i, j, mlx, facing_ratio, 0,  new_vector3(255,255,255));
+				lightIntensity->x *= light_brightness / (4 * M_PI * pow(mag, 2));
+				lightIntensity->y *= light_brightness / (4 * M_PI * pow(mag, 2));
+				lightIntensity->z *= light_brightness / (4 * M_PI * pow(mag, 2));
+
+				normalize(light_p_dist);
+				shadow_ray->pos = hit_point;
+				shadow_ray->dir = light_p_dist;
+
+				double shadow_intersect = intersect(shadow_ray, sphere);
+				if(shadow_intersect)
+				{
+					lightIntensity->x *= 0.5;
+					lightIntensity->y *= 0.5;
+					lightIntensity->z *= 0.5;
+				}
+
+				plot(i, j, mlx, 1, 0,  lightIntensity);
 			}
-			t_vector3 *light_dir = new_vector3(-1, 0, 0);
 
-			intersectdist = intersect(eye, sphere);
+
 			if(intersectdist)
 			{
 				hit_line = new_vector3(eye->dir->x * intersectdist,
@@ -250,25 +278,35 @@ int	main(int argc, char **argv)
 				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
 				normalize(sphere_normal);
 
-				// double facing_ratio = scal_vector3(sphere_normal, light_dir, 0);
-				// facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+				double shadow_intersect;
+
 				t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
 				double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
-				t_vector3 *lightIntensity = new_vector3(200, 200, 200);
+				t_vector3 *lightIntensity = new_vector3(0, 200, 200);
 
-				lightIntensity->x *= 3000 / (4 * M_PI * pow(mag, 2));
-				lightIntensity->y *= 3000 / (4 * M_PI * pow(mag, 2));
-				lightIntensity->z *= 3000 / (4 * M_PI * pow(mag, 2));
+				lightIntensity->x *= light_brightness / (4 * M_PI * pow(mag, 2));
+				lightIntensity->y *= light_brightness / (4 * M_PI * pow(mag, 2));
+				lightIntensity->z *= light_brightness / (4 * M_PI * pow(mag, 2));
+
+				normalize(light_p_dist);
+
+
+				double facing_ratio = scal_vector3(sphere_normal, light_p_dist, 0);
+				facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+
 
 				//printf("%f %f %f\n", lightIntensity->x, lightIntensity->y, lightIntensity->z);
-				normalize(light_p_dist);
-				t_vector3 *r = reflect(light_p_dist, sphere_normal);
-				normalize(r);
-				t_vector3 *v = new_vector3(-eye->dir->x,
-				-eye->dir->y, -eye->dir->z);
-				double specular = pow(scal_vector3(r, v, 0), 400);
-
-				plot(i, j, mlx, 1, 0, lightIntensity);
+				double specular = 0;
+				if(facing_ratio > 0.0001)
+				{
+					normalize(light_p_dist);
+					t_vector3 *r = reflect(light_p_dist, sphere_normal);
+					normalize(r);
+					t_vector3 *v = new_vector3(-eye->dir->x,
+						-eye->dir->y, -eye->dir->z);
+					specular = pow(scal_vector3(r, v, 0), 400);
+				}
+				plot(i, j, mlx, facing_ratio, specular, lightIntensity);
 
 				// if(facing_ratio > 1)
 				// 	facing_ratio = 1;
