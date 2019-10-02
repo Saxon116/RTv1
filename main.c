@@ -6,20 +6,20 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/30 13:42:29 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/10/02 20:12:50 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-void	plot(int x, int y, t_mlx *mlx, double alpha, double specular, t_vector3 *color)
+void	plot(int x, int y, t_mlx *mlx, t_vector3 *color)
 {
 	int index;
 
 	index = 4 * (y * WIDTH) + 4 * x;
-	mlx->img_str[index] = (char)ft_constrain(alpha * color->z + specular * 100, 0, 255);
-	mlx->img_str[index + 1] = (char)ft_constrain(alpha * color->y + specular * 100, 0, 255);
-	mlx->img_str[index + 2] = (char)ft_constrain(alpha * color->x + specular * 100, 0, 255);
+	mlx->img_str[index] = (char)color->z;
+	mlx->img_str[index + 1] = (char)color->y;
+	mlx->img_str[index + 2] = (char)color->x;
 }
 
 void	initialize_mlx(t_mlx *mlx)
@@ -112,6 +112,102 @@ double solveQuadratic(double a, double b, double c)
 		return (x1);
 }
 
+
+t_sphere *add_sphere(t_vector3 *pos, double radius, int id)
+{
+	t_sphere *sphere;
+
+	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
+		return (0);
+	sphere->pos = pos;
+	sphere->radius = radius;
+	sphere->id = id;
+	sphere->next = NULL;
+	return (sphere);
+}
+
+t_ray *add_plane(t_vector3 *pos, t_vector3 *dir, int id)
+{
+	t_ray *plane;
+
+	if ((plane = malloc(sizeof(t_ray))) == NULL)
+		return (0);
+	plane->pos = pos;
+	plane->dir = dir;
+	plane->dir->x *= -1;
+	plane->dir->y *= -1;
+	plane->dir->z *= -1;
+	plane->id = id;
+	plane->next = NULL;
+	return (plane);
+}
+
+t_vector2 *check_plane_intersections(t_ray *eye, t_ray *plane_list)
+{
+	double t;
+	double dist;
+	t_ray *plane_hit;
+
+	t = 0;
+	dist = 0;
+	plane_hit = NULL;
+	while(plane_list)
+	{
+		dist = intersect_plane(eye, plane_list);
+		if(dist > 1)
+		{
+			if(t == 0)
+			{
+				t = dist;
+				plane_hit = plane_list;
+			}
+			else if(dist < t)
+			{
+				plane_hit = plane_list;
+				t = dist;
+			}
+		}
+		plane_list = plane_list->next;
+	}
+	if(plane_hit)
+		return (new_vector2(t, plane_hit->id));
+	else
+		return (NULL);
+}
+
+t_vector2 *check_sphere_intersections(t_ray *eye, t_sphere *sphere_list)
+{
+	double t;
+	double dist;
+	t_sphere *sphere_hit;
+
+	t = 0;
+	dist = 0;
+	sphere_hit = NULL;
+	while(sphere_list)
+	{
+		dist = intersect(eye, sphere_list);
+		if(dist > 1)
+		{
+			if(t == 0)
+			{
+				t = dist;
+				sphere_hit = sphere_list;
+			}
+			else if(dist < t)
+			{
+				sphere_hit = sphere_list;
+				t = dist;
+			}
+		}
+		sphere_list = sphere_list->next;
+	}
+	if(sphere_hit)
+		return (new_vector2(t, sphere_hit->id));
+	else
+		return (NULL);
+}
+
 double intersect_cone(t_ray *ray, t_cone *cone)
 {
 	double dv = scal_vector3(ray->dir, cone->dir, 0);
@@ -125,15 +221,6 @@ double intersect_cone(t_ray *ray, t_cone *cone)
 	cos_theta->z = co->z * pow(cos(theta_rad), 2);
 	double b = 2 * (dv * scal_vector3(co, cone->dir, 0) - scal_vector3(ray->dir, cos_theta, 0));
 	double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, cos_theta, 0);
-
-	// double theta_rad = cone->theta * (M_PI/180);
-	// double cos_sqrd = pow(cos(theta_rad), 2);
-	// t_vector3 *co = new_vector3(cone->pos->x * ray->pos->x, cone->pos->y * ray->pos->y, cone->pos->z * ray->pos->z);
-	// t_vector3 *co_cos = new_vector3(co->x * cos_sqrd, co->y * cos_sqrd, co->z * cos_sqrd);
-	// double a = pow(scal_vector3(ray->dir, cone->dir, 0), 2) - cos_sqrd;
-	// double b = 2 * (scal_vector3(ray->dir, cone->dir, 0) * scal_vector3(co, cone->dir, 0)
-	// - scal_vector3(ray->dir, co_cos, 0));
-	// double c = pow(scal_vector3(co, cone->dir, 0), 2) - scal_vector3(co, co_cos, 0);
 
 	return solveQuadratic(a, b, c);
 
@@ -150,19 +237,125 @@ double intersect_cylinder(t_ray *ray, t_cylinder *cylinder)
 	return solveQuadratic(a, b, c);
 }
 
-int	main(int argc, char **argv)
+t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_point, t_sphere *sphere_list)
 {
-	t_ray	*eye;
-	t_ray	*plane;
-	t_ray	*light_point;
-	t_ray *shadow_ray;
-	t_vector3 *screen;
+	t_vector3 *hit_point;
+	t_vector3 *hit_line;
+	t_ray	*shadow_ray;
+
+	if ((shadow_ray = malloc(sizeof(t_ray))) == NULL)
+		return (0);
+	int light_brightness = 10000;
+
+
+	hit_line = new_vector3(eye->dir->x * t,
+	eye->dir->y * t, eye->dir->z * t);
+	hit_point = add_vector3(eye->pos, hit_line, 0);
+
+	t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
+	double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
+	t_vector3 *object_color = new_vector3(200, 200, 200);
+
+	object_color->x *= light_brightness / (4 * M_PI * pow(mag, 2));
+	object_color->y *= light_brightness / (4 * M_PI * pow(mag, 2));
+	object_color->z *= light_brightness / (4 * M_PI * pow(mag, 2));
+
+	normalize(light_p_dist);
+	shadow_ray->pos = hit_point;
+	shadow_ray->dir = light_p_dist;
+
+	while(sphere_list)
+	{
+		double shadow_intersect = intersect(shadow_ray, sphere_list);
+		if(shadow_intersect)
+		{
+			object_color->x *= 0.5;
+			object_color->y *= 0.5;
+			object_color->z *= 0.5;
+		}
+		sphere_list = sphere_list->next;
+	}
+	return (object_color);
+}
+
+t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, t_ray *light_point, t_sphere *sphere_list)
+{
 	t_vector3 *hit_point;
 	t_vector3 *sphere_normal;
 	t_vector3 *hit_line;
-	t_sphere *sphere;
-	t_cone *cone;
-	t_cylinder *cylinder;
+	t_ray	*shadow_ray;
+
+	if ((shadow_ray = malloc(sizeof(t_ray))) == NULL)
+		return (0);
+
+	//printf("sphere here is id: %d\n", sphere->id);
+	int light_brightness = 10000;
+
+	hit_line = new_vector3(eye->dir->x * intersectdist,
+	eye->dir->y * intersectdist, eye->dir->z * intersectdist);
+	hit_point = add_vector3(eye->pos, hit_line, 0);
+	sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
+	normalize(sphere_normal);
+
+	double shadow_intersect;
+
+	t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
+	double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
+	t_vector3 *object_color = new_vector3(0, 200, 200);
+
+	object_color->x *= light_brightness / (4 * M_PI * pow(mag, 2));
+	object_color->y *= light_brightness / (4 * M_PI * pow(mag, 2));
+	object_color->z *= light_brightness / (4 * M_PI * pow(mag, 2));
+
+	normalize(light_p_dist);
+
+
+	double facing_ratio = scal_vector3(sphere_normal, light_p_dist, 0);
+	facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
+
+	double specular = 0;
+	if(facing_ratio > 0.0001)
+	{
+		normalize(light_p_dist);
+		t_vector3 *r = reflect(light_p_dist, sphere_normal);
+		normalize(r);
+		t_vector3 *v = new_vector3(-eye->dir->x,
+			-eye->dir->y, -eye->dir->z);
+		specular = pow(scal_vector3(r, v, 0), 400);
+	}
+
+	//printf("before %f %f %f\n", intersectdist, object_color->y, object_color->z);
+	object_color->x = ft_constrain(facing_ratio * object_color->x + specular * 100, 0, 255);
+	object_color->y = ft_constrain(facing_ratio * object_color->y + specular * 100, 0, 255);
+	object_color->z = ft_constrain(facing_ratio * object_color->z + specular * 100, 0, 255);
+
+	shadow_ray->pos = hit_point;
+	shadow_ray->dir = light_p_dist;
+	while(sphere_list)
+	{
+		double shadow_intersect = intersect(shadow_ray, sphere_list);
+		if(shadow_intersect)
+		{
+			object_color->x *= 0.1;
+			object_color->y *= 0.1;
+			object_color->z *= 0.1;
+		}
+		sphere_list = sphere_list->next;
+	}
+	//printf("after %f %f %f\n", object_color->x, object_color->y, object_color->z);
+
+	return (object_color);
+}
+
+int	main(int argc, char **argv)
+{
+	t_ray	*eye;
+	t_ray	*light_point;
+	t_vector3 *screen;
+	t_sphere *sphere_list;
+	t_sphere *sphere_list_head;
+	t_ray	*plane_list;
+	t_ray	*plane_list_head;
 	t_mlx	*mlx;
 
 	if ((mlx = malloc(sizeof(t_mlx))) == NULL)
@@ -170,42 +363,25 @@ int	main(int argc, char **argv)
 	initialize_mlx(mlx);
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
 		return (0);
-	if ((plane = malloc(sizeof(t_ray))) == NULL)
-		return (0);
-	if ((shadow_ray = malloc(sizeof(t_ray))) == NULL)
-		return (0);
-	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
-		return (0);
 	if ((light_point = malloc(sizeof(t_ray))) == NULL)
 		return (0);
-	if ((cone = malloc(sizeof(t_cone))) == NULL)
-		return (0);
-	if ((cylinder = malloc(sizeof(t_cylinder))) == NULL)
-		return (0);
 
 
+	light_point->pos = new_vector3(-15, 10, -10);
 
-	cone->pos = new_vector3(0, 0, -50);
-	cone->dir = new_vector3(0, -1, 0);
-	cone->theta = 20.0;
+	sphere_list = add_sphere(new_vector3(0, -5, -20), 5.0, 0);
+	sphere_list_head = sphere_list;
 
-	cylinder->pos = new_vector3(10, -10, -150);
-	cylinder->dir = new_vector3(0, 0, 1);
-	cylinder->radius = 2;
+	sphere_list->next = add_sphere(new_vector3(5, 5, -20), 5.0, 1);
+	sphere_list->next->next = add_sphere(new_vector3(-5, 5, -20), 5.0, 1);
 
-	light_point->pos = new_vector3(10, 20, -5);
-
-	sphere->pos = new_vector3(0, -5, -20);
-	sphere->radius = 5.0;
+	plane_list = add_plane(new_vector3(0, -10, 0), new_vector3(0, 1, 0), 0);
+	plane_list_head = plane_list;
+	plane_list->next = add_plane(new_vector3(0, 0, -50), new_vector3(0, 0, 1), 1);
 
 	eye->pos = new_vector3(0, 0, 0);
 
 
-	plane->pos = new_vector3(0, -10, 0);
-	plane->dir = new_vector3(0, 1, 0);
-	plane->dir->x *= -1;
-	plane->dir->y *= -1;
-	plane->dir->z *= -1;
 
 
 	int hitnum = 0;
@@ -227,123 +403,75 @@ int	main(int argc, char **argv)
 			screen = new_vector3(x, y, -1);
 			eye->dir = sub_vector3(screen, eye->pos, 0);
 			normalize(eye->dir);
-			double t = intersect_plane(eye, plane);
-			intersectdist = intersect(eye, sphere);
-			if(t && intersectdist)
+
+			plane_list = plane_list_head;
+			sphere_list = sphere_list_head;
+			t_vector2 *closest_sphere = check_sphere_intersections(eye, sphere_list);
+			t_vector2 *closest_plane = check_plane_intersections(eye, plane_list);
+
+
+			if(closest_sphere && closest_plane)
 			{
-				if(t < intersectdist)
-					intersectdist = 0;
+				if(closest_sphere->x < closest_plane->x)
+					closest_plane = NULL;
 				else
-					t = 0;
+					closest_sphere = NULL;
 			}
 
-			int light_brightness = 10000;
 
-			if(t)
+
+
+			if(closest_plane)
 			{
-				//plot(i, j, mlx, 1, 0,  new_vector3(255,255,255));
-				hit_line = new_vector3(eye->dir->x * t,
-				eye->dir->y * t, eye->dir->z * t);
-				hit_point = add_vector3(eye->pos, hit_line, 0);
-				//printf("%f %f %f\n", view_normal->x, view_normal->y, view_normal->z);
-				t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
-				double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
-				t_vector3 *lightIntensity = new_vector3(200, 200, 200);
-
-				lightIntensity->x *= light_brightness / (4 * M_PI * pow(mag, 2));
-				lightIntensity->y *= light_brightness / (4 * M_PI * pow(mag, 2));
-				lightIntensity->z *= light_brightness / (4 * M_PI * pow(mag, 2));
-
-				normalize(light_p_dist);
-				shadow_ray->pos = hit_point;
-				shadow_ray->dir = light_p_dist;
-
-				double shadow_intersect = intersect(shadow_ray, sphere);
-				if(shadow_intersect)
-				{
-					lightIntensity->x *= 0.5;
-					lightIntensity->y *= 0.5;
-					lightIntensity->z *= 0.5;
-				}
-
-				plot(i, j, mlx, 1, 0,  lightIntensity);
+				plane_list = plane_list_head;
+				while(plane_list && plane_list->id != closest_plane->y)
+					plane_list = plane_list->next;
+				t_vector3 *color = get_plane_color(closest_plane->x, eye, plane_list, light_point, sphere_list);
+				plot(i, j, mlx, color);
 			}
 
-
-			if(intersectdist)
+			if(closest_sphere)
 			{
-				hit_line = new_vector3(eye->dir->x * intersectdist,
-				eye->dir->y * intersectdist, eye->dir->z * intersectdist);
-				hit_point = add_vector3(eye->pos, hit_line, 0);
-				sphere_normal = sub_vector3(hit_point, sphere->pos, 0);
-				normalize(sphere_normal);
-
-				double shadow_intersect;
-
-				t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
-				double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
-				t_vector3 *lightIntensity = new_vector3(0, 200, 200);
-
-				lightIntensity->x *= light_brightness / (4 * M_PI * pow(mag, 2));
-				lightIntensity->y *= light_brightness / (4 * M_PI * pow(mag, 2));
-				lightIntensity->z *= light_brightness / (4 * M_PI * pow(mag, 2));
-
-				normalize(light_p_dist);
-
-
-				double facing_ratio = scal_vector3(sphere_normal, light_p_dist, 0);
-				facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
-
-
-				//printf("%f %f %f\n", lightIntensity->x, lightIntensity->y, lightIntensity->z);
-				double specular = 0;
-				if(facing_ratio > 0.0001)
-				{
-					normalize(light_p_dist);
-					t_vector3 *r = reflect(light_p_dist, sphere_normal);
-					normalize(r);
-					t_vector3 *v = new_vector3(-eye->dir->x,
-						-eye->dir->y, -eye->dir->z);
-					specular = pow(scal_vector3(r, v, 0), 400);
-				}
-				plot(i, j, mlx, facing_ratio, specular, lightIntensity);
-
-				// if(facing_ratio > 1)
-				// 	facing_ratio = 1;
-				// if(facing_ratio > 0.0)
-				// 	plot(i, j, mlx, 1, specular, new_vector3(147,233,190));
+				sphere_list = sphere_list_head;
+				while(sphere_list && sphere_list->id != closest_sphere->y)
+					sphere_list = sphere_list->next;
+				t_vector3 *color = get_sphere_color(closest_sphere->x, eye, sphere_list, light_point, sphere_list);
+				plot(i, j, mlx, color);
 			}
-			// double intersect = intersect_cone(eye, cone);
-			//
-			// if(intersect)
+
+
+
+
+			// if(t)
 			// {
-			// 	if(eye->dir->y > 0)
-			// 		eye->dir->y *= -1;
-			// 	t_vector3 *cp = new_vector3(eye->pos->x, eye->pos->y, eye->pos->z);
-			// 	cp->x = cp->x + intersect * eye->dir->x - cone->pos->x;
-			// 	cp->y = cp->y + intersect * eye->dir->y - cone->pos->y;
-			// 	cp->z = cp->z + intersect * eye->dir->z - cone->pos->z;
+			// 	//plot(i, j, mlx, 1, 0,  new_vector3(255,255,255));
+			// 	hit_line = new_vector3(eye->dir->x * t,
+			// 	eye->dir->y * t, eye->dir->z * t);
+			// 	hit_point = add_vector3(eye->pos, hit_line, 0);
+			// 	//printf("%f %f %f\n", view_normal->x, view_normal->y, view_normal->z);
+			// 	t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
+			// 	double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
+			// 	t_vector3 *object_color = new_vector3(200, 200, 200);
 			//
-			// 	cp->x = cp->x * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->x;
-			// 	cp->y = cp->y * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->y;
-			// 	cp->z = cp->z * scal_vector3(cone->dir, cp, 0) / scal_vector3(cp, cp, 0) - cone->dir->z;
+			// 	object_color->x *= light_brightness / (4 * M_PI * pow(mag, 2));
+			// 	object_color->y *= light_brightness / (4 * M_PI * pow(mag, 2));
+			// 	object_color->z *= light_brightness / (4 * M_PI * pow(mag, 2));
 			//
-			// 	normalize(cp);
+			// 	normalize(light_p_dist);
+			// 	shadow_ray->pos = hit_point;
+			// 	shadow_ray->dir = light_p_dist;
 			//
-			// 	double facing_ratio = scal_vector3(cp, light_dir, 0);
-			// 	//printf("facing_ratio = %f\n", facing_ratio);
+			// 	double shadow_intersect = intersect(shadow_ray, sphere);
+			// 	if(shadow_intersect)
+			// 	{
+			// 		object_color->x *= 0.5;
+			// 		object_color->y *= 0.5;
+			// 		object_color->z *= 0.5;
+			// 	}
 			//
-			// 	if(facing_ratio > 1)
-			// 		facing_ratio = 1;
-			// 	plot(i, j, mlx, facing_ratio, 0, new_vector3(150,150,150));
-			// 		// 		plot(i, j, mlx, facing_ratio, specular, new_vector3(147,233,190));
-			// 		// 	else
-			// 		// 		plot(i, j, mlx, 0, 0, new_vector3(0,0,0));
+			// 	plot(i, j, mlx, 1, 0,  object_color);
 			// }
-			// double intersect = intersect_cylinder(eye, cylinder);
-			//
-			// if(intersect)
-			// 	plot(i, j, mlx, 1, 0, new_vector3(255,255,255));
+
 			i++;
 		}
 		j++;

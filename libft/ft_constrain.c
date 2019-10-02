@@ -6,13 +6,13 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/02/04 11:25:59 by nkellum           #+#    #+#             */
-/*   Updated: 2019/02/04 12:31:17 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/30 19:09:17 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int	ft_constrain(int val, int min, int max)
+double	ft_constrain(double val, double min, double max)
 {
 	if (val >= max)
 		return (max);

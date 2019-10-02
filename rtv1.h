@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/09/23 18:49:32 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/10/02 16:14:08 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,21 @@
 #define WIDTH 1280
 #define HEIGHT 900
 
-typedef struct	s_ray
+typedef struct		s_ray
 {
-	t_vector3	*pos;
-	t_vector3	*dir;
-}				t_ray;
+	t_vector3		*pos;
+	t_vector3		*dir;
+	int				id;
+	struct s_ray	*next;
+}					t_ray;
 
-typedef struct	s_sphere
+typedef struct		s_sphere
 {
-	t_vector3	*pos;
-	double		radius;
-}				t_sphere;
+	t_vector3		*pos;
+	double			radius;
+	int				id;
+	struct s_sphere	*next;
+}					t_sphere;
 
 typedef struct	s_cone
 {
