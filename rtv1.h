@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/10/02 16:14:08 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/10/10 10:44:33 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ typedef struct		s_ray
 	t_vector3		*pos;
 	t_vector3		*dir;
 	int				id;
+	int				brightness;
 	struct s_ray	*next;
 }					t_ray;
 
@@ -72,5 +73,23 @@ typedef struct	s_mlx
 int				deal_key(int key, void *param);
 int				win_close(void *param);
 void			initialize_mlx(t_mlx *mlx);
+double intersect_plane(t_ray *ray, t_ray *plane);
+t_ray *add_plane(t_vector3 *pos, t_vector3 *dir, int id);
+t_vector2 *check_plane_intersections(t_ray *eye, t_ray *plane_list);
+t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_point, t_sphere *sphere_list);
+t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, t_ray *light_point, t_sphere *sphere_list);
+t_vector2 *check_sphere_intersections(t_ray *eye, t_sphere *sphere_list);
+t_sphere *add_sphere(t_vector3 *pos, double radius, int id);
+double intersect(t_ray *ray, t_sphere *sphere);
+void	plot(int x, int y, t_mlx *mlx, t_vector3 *color);
+void	initialize_mlx(t_mlx *mlx);
+void	normalize(t_vector3 *vec);
+t_vector3 *reflect(t_vector3 *light, t_vector3 *normal);
+double solveQuadratic(double a, double b, double c);
+t_ray *add_light(t_vector3 *pos, int brightness, int id);
+
+
+
+
 
 #endif

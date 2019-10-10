@@ -6,12 +6,12 @@
 #    By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/11/13 12:50:22 by nkellum           #+#    #+#              #
-#    Updated: 2019/09/21 17:48:10 by nkellum          ###   ########.fr        #
+#    Updated: 2019/10/10 10:54:31 by nkellum          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = rtv1
-SRC = main.c event.c
+SRC = main.c event.c plane.c sphere.c misc.c light.c
 OBJ = $(SRC:.c=.o)
 
 # This is a minimal set of ANSI/VT100 color codes
