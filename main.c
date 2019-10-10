@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/10/10 16:45:12 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/10/10 19:30:36 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,13 @@ int	main(int argc, char **argv)
 
 
 
-	light_list = add_light(new_vector3(-10, 0, 0), 3000, 0);
+	light_list = add_light(new_vector3(10, 10, 0), 2000, 0);
 	light_list_head = light_list;
-	light_list->next = add_light(new_vector3(0, 20, 0), 3000, 1);
-	light_list->next->next = add_light(new_vector3(10, 0, 0), 3000, 1);
+	light_list->next = add_light(new_vector3(15, 10, 0), 2000, 1);
+	light_list->next->next = add_light(new_vector3(20, 10, 0), 2000, 1);
 
-	sphere_list = add_sphere(new_vector3(0, -5, -20), 5.0, 0);
+
+	sphere_list = add_sphere(new_vector3(5, -1, -10), 3.0, 0);
 	sphere_list_head = sphere_list;
 
 	// sphere_list->next = add_sphere(new_vector3(5, 5, -20), 5.0, 1);
@@ -50,7 +51,7 @@ int	main(int argc, char **argv)
 
 	plane_list = add_plane(new_vector3(0, -10, 0), new_vector3(0, 1, 0), 0);
 	plane_list_head = plane_list;
-	plane_list->next = add_plane(new_vector3(0, 0, -50), new_vector3(0, 0, 1), 1);
+	//plane_list->next = add_plane(new_vector3(0, 0, -50), new_vector3(0, 0, 1), 1);
 
 	eye->pos = new_vector3(0, 0, 0);
 
