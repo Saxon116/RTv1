@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/10/10 10:44:33 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/06 14:43:55 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ typedef struct		s_ray
 typedef struct		s_sphere
 {
 	t_vector3		*pos;
+	t_vector3		*color;
 	double			radius;
 	int				id;
 	struct s_sphere	*next;
@@ -79,7 +80,7 @@ t_vector2 *check_plane_intersections(t_ray *eye, t_ray *plane_list);
 t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_point, t_sphere *sphere_list);
 t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, t_ray *light_point, t_sphere *sphere_list);
 t_vector2 *check_sphere_intersections(t_ray *eye, t_sphere *sphere_list);
-t_sphere *add_sphere(t_vector3 *pos, double radius, int id);
+t_sphere *add_sphere(t_vector3 *pos, t_vector3 *color, double radius, int id);
 double intersect(t_ray *ray, t_sphere *sphere);
 void	plot(int x, int y, t_mlx *mlx, t_vector3 *color);
 void	initialize_mlx(t_mlx *mlx);

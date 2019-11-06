@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:35:07 by nkellum           #+#    #+#             */
-/*   Updated: 2019/10/10 19:29:55 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/06 14:48:19 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 
 	t_vector3 *light_p_dist = sub_vector3(light_point->pos, hit_point, 0);
 	double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
-	t_vector3 *object_color = new_vector3(0, 200, 200);
+	t_vector3 *object_color = new_vector3(sphere->color->x, sphere->color->y, sphere->color->z);
 
 	object_color->x *= light_point->brightness / (4 * M_PI * pow(mag, 2));
 	object_color->y *= light_point->brightness / (4 * M_PI * pow(mag, 2));
@@ -118,13 +118,14 @@ t_vector2 *check_sphere_intersections(t_ray *eye, t_sphere *sphere_list)
 		return (NULL);
 }
 
-t_sphere *add_sphere(t_vector3 *pos, double radius, int id)
+t_sphere *add_sphere(t_vector3 *pos, t_vector3 *color, double radius, int id)
 {
 	t_sphere *sphere;
 
 	if ((sphere = malloc(sizeof(t_sphere))) == NULL)
 		return (0);
 	sphere->pos = pos;
+	sphere->color = color;
 	sphere->radius = radius;
 	sphere->id = id;
 	sphere->next = NULL;
