@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:38:03 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/06 14:34:02 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/07 10:12:03 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,9 @@ t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_poin
 	int c = ceil(cos(hit_point->z)) * ceil(cos(hit_point->x));
 	if(ceil(cos(hit_point->z)) == 0 && ceil(cos(hit_point->x)) == 0)
 		c = 1;
-	int r = c * 255;
-	int g = c * 255;
-	int b = c * 255;
+	int r = c == 1 ? 255 : 150;
+	int g = c == 1 ? 255 : 150;
+	int b = c == 1 ? 255 : 150;
 	t_vector3 *object_color = new_vector3(r, g, b);
 
 	object_color->x *= light_point->brightness / (4 * M_PI * pow(mag, 2));

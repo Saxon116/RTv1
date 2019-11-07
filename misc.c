@@ -6,11 +6,23 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:33:41 by nkellum           #+#    #+#             */
-/*   Updated: 2019/10/10 12:28:38 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/07 14:20:41 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
+
+t_texture *load_texture(t_mlx *mlx, char *filename, int width, int height)
+{
+	t_texture *texture;
+
+	if ((texture = malloc(sizeof(t_texture))) == NULL)
+		return (0);
+	texture->img_texture_ptr = mlx_xpm_file_to_image(mlx->mlx_ptr, filename, &width, &height);
+	texture->img_texture_str = mlx_get_data_addr(texture->img_texture_ptr, &(mlx->bpp),
+	&(mlx->size_line), &(mlx->endian));
+	return (texture);
+}
 
 void	plot(int x, int y, t_mlx *mlx, t_vector3 *color)
 {
