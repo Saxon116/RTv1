@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:35:07 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/07 16:28:49 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/08 15:40:38 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,8 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 	double u = 0.5 + atan2(spherical_xyz->z, spherical_xyz->x) / (2 * M_PI);
 	double v = 0.5 - asin(spherical_xyz->y) / M_PI;
 
-	printf("u = %f v = %f\n", u, v);
+
+	t_vector3 *object_color = get_pixel(u, v, sphere->texture);
 
 
 
@@ -51,7 +52,7 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 	// printf("mag is %f\n", mag_spherical);
 
 
-	t_vector3 *object_color = new_vector3(sphere->color->x, sphere->color->y, sphere->color->z);
+	// t_vector3 *object_color = new_vector3(sphere->color->x, sphere->color->y, sphere->color->z);
 
 
 

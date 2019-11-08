@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/07 14:24:20 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/08 15:57:51 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,26 +33,27 @@ int	main(int argc, char **argv)
 		return (0);
 
 	initialize_mlx(mlx);
-	t_texture *pluto = load_texture(mlx, "pluto_texture.xpm", 500, 500);
+	t_texture *squares = load_texture(mlx, "mars_texture.xpm", 341, 330);
+
 
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
 		return (0);
 
 
 
-	light_list = add_light(new_vector3(5, 10, 0), 3000, 0);
+	light_list = add_light(new_vector3(5, 20, 5), 10000, 0);
 	light_list_head = light_list;
 	// light_list->next = add_light(new_vector3(15, 10, 0), 2000, 1);
 	// light_list->next->next = add_light(new_vector3(20, 10, 0), 2000, 1);
 
 
-	sphere_list = add_sphere(new_vector3(0, -3, -10), new_vector3(255, 0, 0), 2.0, 0, pluto);
+	sphere_list = add_sphere(new_vector3(0, -3, -20), new_vector3(255, 0, 0), 8.0, 0, squares);
 	sphere_list_head = sphere_list;
 
 	// sphere_list->next = add_sphere(new_vector3(0, -3, -10), new_vector3(0, 255, 0), 2.0, 1);
 	// sphere_list->next->next = add_sphere(new_vector3(5, -3, -10), new_vector3(0, 0, 255), 2.0, 2);
 
-	plane_list = add_plane(new_vector3(0, -5, 0), new_vector3(0, 1, 0), 0);
+	plane_list = add_plane(new_vector3(0, -10, 0), new_vector3(0, 1, 0), 0);
 	plane_list_head = plane_list;
 	//plane_list->next = add_plane(new_vector3(0, 0, -50), new_vector3(0, 0, 1), 1);
 
@@ -181,8 +182,6 @@ int	main(int argc, char **argv)
 		}
 		j++;
 	}
-
-	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, pluto->img_texture_ptr, 0, 0);
 	mlx_put_image_to_window(mlx->mlx_ptr, mlx->win_ptr, mlx->img_ptr, 0, 0);
 	mlx_hook(mlx->win_ptr, 2, 0, deal_key, mlx);
 	mlx_hook(mlx->win_ptr, 17, 0, win_close, mlx);

@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/22 16:31:29 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/07 14:25:21 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/08 15:40:58 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ typedef struct	s_texture
 {
 	void		*img_texture_ptr;
 	char		*img_texture_str;
+	int			width;
+	int			height;
 }				t_texture;
 
 typedef struct		s_ray
@@ -100,6 +102,8 @@ t_vector3 *reflect(t_vector3 *light, t_vector3 *normal);
 double solveQuadratic(double a, double b, double c);
 t_ray *add_light(t_vector3 *pos, int brightness, int id);
 t_texture *load_texture(t_mlx *mlx, char *filename, int width, int height);
+t_vector3	*get_pixel(double u, double v, t_texture *texture);
+
 
 
 
