@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/03 17:45:50 by nkellum           #+#    #+#             */
-/*   Updated: 2019/07/09 16:00:13 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/25 14:33:57 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,9 +108,7 @@ void	print_double(va_list ap, t_flags *flags)
 	long double	d;
 	long long	num;
 	long double	m;
-	int			i;
 
-	i = 0;
 	num = 0;
 	d = 0;
 	m = 0;

@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:35:07 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/08 15:40:38 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/09 21:22:34 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 	if ((shadow_ray = malloc(sizeof(t_ray))) == NULL)
 		return (0);
 
-	//printf("sphere here is id: %d\n", sphere->id);
 
 	hit_line = new_vector3(eye->dir->x * intersectdist,
 	eye->dir->y * intersectdist, eye->dir->z * intersectdist);
@@ -36,23 +35,25 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 	double mag = sqrt(pow(light_p_dist->x, 2) + pow(light_p_dist->y, 2) + pow(light_p_dist->z, 2));
 
 
-	t_vector3 *spherical_xyz = sub_vector3(sphere->pos, hit_point, 0);
-	normalize(spherical_xyz);
+	t_vector3 *object_color;
+	// Calculate uv to get texture coordinates
+	if(sphere->texture)
+	{
+		t_vector3 *spherical_xyz = sub_vector3(sphere->pos, hit_point, 0);
+		spherical_xyz->x *= -1;
+		spherical_xyz->y *= -1;
+		normalize(spherical_xyz);
+		double u = 0.5 + atan2(spherical_xyz->z, spherical_xyz->x) / (2 * M_PI);
+		double v = 0.5 - asin(spherical_xyz->y) / M_PI;
+		object_color = get_pixel(u, v, sphere->texture);
+	}
+	else
+	{
+		object_color = new_vector3(sphere->color->x, sphere->color->y, sphere->color->z);
+	}
 
-	double u = 0.5 + atan2(spherical_xyz->z, spherical_xyz->x) / (2 * M_PI);
-	double v = 0.5 - asin(spherical_xyz->y) / M_PI;
 
 
-	t_vector3 *object_color = get_pixel(u, v, sphere->texture);
-
-
-
-	// double mag_spherical = sqrt(pow(spherical_xyz->x, 2) +
-	// pow(spherical_xyz->y, 2) + pow(spherical_xyz->z, 2));
-	// printf("mag is %f\n", mag_spherical);
-
-
-	// t_vector3 *object_color = new_vector3(sphere->color->x, sphere->color->y, sphere->color->z);
 
 
 
@@ -67,7 +68,7 @@ t_vector3 *get_sphere_color(double intersectdist, t_ray *eye, t_sphere *sphere, 
 	facing_ratio *= 0.7; // can be edited with light intensity, need to ad K of specular
 
 	double specular = 0;
-	if(facing_ratio > 0.0001)
+	if(facing_ratio > 0.0001 && sphere->texture == NULL)
 	{
 		normalize(light_p_dist);
 		t_vector3 *r = reflect(light_p_dist, sphere_normal);

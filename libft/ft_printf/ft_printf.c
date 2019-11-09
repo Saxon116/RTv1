@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/02/20 17:58:03 by nkellum           #+#    #+#             */
-/*   Updated: 2019/07/09 16:00:20 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/09/25 14:34:15 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ char	check_format(const char *fmt)
 
 void	analyse_format(va_list ap, const char *fmt, char c, t_flags *flags)
 {
-	int		i;
 	char	*str_formats;
 
 	init_flags(flags);
@@ -46,7 +45,6 @@ void	analyse_format(va_list ap, const char *fmt, char c, t_flags *flags)
 	flags->l = contains(flags->fmt_str, 'l');
 	flags->upper_l = contains(flags->fmt_str, 'L');
 	get_flags(flags);
-	i = 0;
 	str_formats = "cs";
 	if (contains(str_formats, c))
 	{

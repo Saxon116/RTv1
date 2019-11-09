@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:33:41 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/08 15:40:30 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/09 21:23:19 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,11 @@ t_texture *load_texture(t_mlx *mlx, char *filename, int width, int height)
 	if ((texture = malloc(sizeof(t_texture))) == NULL)
 		return (0);
 	texture->img_texture_ptr = mlx_xpm_file_to_image(mlx->mlx_ptr, filename, &width, &height);
+	if(!texture->img_texture_ptr)
+	{
+		printf("Error loading texture file, using color instead.\n");
+		return (NULL);
+	}
 	texture->img_texture_str = mlx_get_data_addr(texture->img_texture_ptr, &(mlx->bpp),
 	&(mlx->size_line), &(mlx->endian));
 	texture->width = width;
@@ -57,6 +62,7 @@ t_vector3	*get_pixel(double u, double v, t_texture *texture)
 	b = texture->img_texture_str[index] & 0xFF;
 	g = texture->img_texture_str[index + 1] & 0xFF;
 	r = texture->img_texture_str[index + 2] & 0xFF;
+
 	return (new_vector3(r, g, b));
 }
 
