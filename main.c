@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/09 21:42:58 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/20 16:31:28 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,11 @@ int	main(int argc, char **argv)
 		return (0);
 
 	initialize_mlx(mlx);
-	t_texture *earth = load_texture(mlx, "textures/earth_hd.xpm", 341, 330);
-	t_texture *moon = load_texture(mlx, "textures/moon.xpm", 2048, 1024);
-	t_texture *pluto = load_texture(mlx, "textures/pluto.xpm", 2000, 1000);
-	t_texture *test = load_texture(mlx, "textures/test.xpm", 2000, 1000);
+	//t_texture *earth = load_texture(mlx, "textures/earth_hd.xpm", 341, 330);
+	t_texture *moon = load_texture(mlx, "textures/moon.xpm");
+	t_texture *pluto = load_texture(mlx, "textures/pluto.xpm");
+	t_texture *test = load_texture(mlx, "textures/test.xpm");
+	t_texture *wood = load_texture(mlx, "textures/wood.xpm");
 
 
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
@@ -44,23 +45,20 @@ int	main(int argc, char **argv)
 
 
 
-	light_list = add_light(new_vector3(5, 5, 0), 8000, 0);
+	light_list = add_light(new_vector3(5, 10, 0), 5000, 0);
 	light_list_head = light_list;
 	// light_list->next = add_light(new_vector3(15, 10, 0), 2000, 1);
 	// light_list->next->next = add_light(new_vector3(20, 10, 0), 2000, 1);
 
 
-	sphere_list = add_sphere(new_vector3(0, -10, -20), new_vector3(255, 0, 0), 10.0, 0, test);
+	sphere_list = add_sphere(new_vector3(0, -100, -40), new_vector3(255, 0, 0), 3.0, 0, test);
 	sphere_list_head = sphere_list;
-
-	sphere_list->next = add_sphere(new_vector3(-5, 5, -30), new_vector3(0, 255, 0), 1.0, 1, test);
 	// sphere_list->next->next = add_sphere(new_vector3(10, -3, -20), new_vector3(0, 0, 255), 4.0, 2, NULL);
 
 
 
-	plane_list = add_plane(new_vector3(0, -100, 0), new_vector3(0, 1, 0), 0);
+	plane_list = add_plane(new_vector3(0, -10, -10), new_vector3(0, 1, 0), 50, 0, wood);
 	plane_list_head = plane_list;
-	//plane_list->next = add_plane(new_vector3(0, 0, -50), new_vector3(0, 0, 1), 1);
 
 	eye->pos = new_vector3(0, 0, 0);
 

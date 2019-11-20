@@ -6,14 +6,15 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:33:41 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/09 21:23:19 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/20 15:30:48 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-t_texture *load_texture(t_mlx *mlx, char *filename, int width, int height)
+t_texture *load_texture(t_mlx *mlx, char *filename)
 {
+	int width, height;
 	t_texture *texture;
 
 	if ((texture = malloc(sizeof(t_texture))) == NULL)
@@ -21,7 +22,7 @@ t_texture *load_texture(t_mlx *mlx, char *filename, int width, int height)
 	texture->img_texture_ptr = mlx_xpm_file_to_image(mlx->mlx_ptr, filename, &width, &height);
 	if(!texture->img_texture_ptr)
 	{
-		printf("Error loading texture file, using color instead.\n");
+		printf("Error loading texture file %s, using color instead.\n", filename);
 		return (NULL);
 	}
 	texture->img_texture_str = mlx_get_data_addr(texture->img_texture_ptr, &(mlx->bpp),
@@ -40,6 +41,7 @@ void	plot(int x, int y, t_mlx *mlx, t_vector3 *color)
 	mlx->img_str[index + 1] = (char)color->y;
 	mlx->img_str[index + 2] = (char)color->x;
 }
+
 
 t_vector3	*get_pixel(double u, double v, t_texture *texture)
 {
