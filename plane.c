@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:38:03 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/20 16:31:45 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/25 16:20:45 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,22 @@ double map(double value, double istart, double istop,
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
 }
 
+int double_length(double d)
+{
+	int i = 1;
+	int num;
+
+	if(d < 0)
+		d = -d;
+	num = (int)d;
+	while(num != 0)
+	{
+		num /= 10;
+		i *= 10;
+	}
+	return (i);
+}
+
 t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_point, t_sphere *sphere_list)
 {
 	t_vector3 *hit_point;
@@ -119,21 +135,26 @@ t_vector3 *get_plane_color(double t, t_ray *eye, t_ray *plane, t_ray *light_poin
 	// Calculate uv to get texture coordinates
 	if(plane->texture)
 	{
-		int hit_width = abs((int)plane->pos->x - (int)hit_point->x);
-		int hit_height = abs((int)plane->pos->z - (int)hit_point->z);
 
-		int stride_w = plane->texture->width;
-		int stride_h = plane->texture->height;
+		// double u = fabs(hit_point->x / (double_length(hit_point->x)));
+		// double v = fabs(hit_point->z / (double_length(hit_point->z)));
+		int stretch = 10;
+		int offsetx = hit_point->x / (plane->texture->width / stretch);
+		int offsety = hit_point->z / (plane->texture->height / stretch);
 
-		hit_width = hit_width % stride_w;
-		hit_height = hit_height % stride_h;
-		// printf("x = %d y = %d\n", hit_width, hit_height);
-		
-		double u = map(hit_width, 0, stride_w, 0, 1);
-		double v = map(hit_height, 0, stride_h, 0, 1);
+		// printf("hitx is %f offset is %d\nbetween %d and %d\n", hit_point->x,
+		// offset, 0 + (plane->texture->width / stretch * offset),
+		// 0 + (plane->texture->width / stretch * offset) + plane->texture->width / stretch);
+		if(hit_point->x < 0)
+			offsetx -= 1;
+		if(hit_point->z < 0)
+			offsety -= 1;
+		double u = map(hit_point->x, 0 + (plane->texture->width / stretch * offsetx), 0 + (plane->texture->width / stretch * offsetx) + plane->texture->width / stretch, 0, 1);
+		double v = map(hit_point->z, 0 + (plane->texture->height / stretch * offsety), 0 + (plane->texture->height / stretch * offsety) + plane->texture->height / stretch, 0, 1);
+
 
 		// printf("u = %f v = %f\n", hit_point->x, hit_point->z);
-		object_color = get_pixel(u, v, plane->texture);
+		object_color = get_texel(u, v, plane->texture);
 	}
 	else
 	{

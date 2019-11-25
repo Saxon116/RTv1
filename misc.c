@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/10 10:33:41 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/20 15:30:48 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/25 14:43:34 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void	plot(int x, int y, t_mlx *mlx, t_vector3 *color)
 }
 
 
-t_vector3	*get_pixel(double u, double v, t_texture *texture)
+t_vector3	*get_texel(double u, double v, t_texture *texture)
 {
 	int index;
 	int x;

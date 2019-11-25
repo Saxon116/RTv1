@@ -6,7 +6,7 @@
 /*   By: nkellum <nkellum@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/07 17:29:43 by nkellum           #+#    #+#             */
-/*   Updated: 2019/11/20 16:31:28 by nkellum          ###   ########.fr       */
+/*   Updated: 2019/11/25 16:19:46 by nkellum          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ int	main(int argc, char **argv)
 	t_texture *pluto = load_texture(mlx, "textures/pluto.xpm");
 	t_texture *test = load_texture(mlx, "textures/test.xpm");
 	t_texture *wood = load_texture(mlx, "textures/wood.xpm");
+	t_texture *rock = load_texture(mlx, "textures/rocks.xpm");
 
 
 	if ((eye = malloc(sizeof(t_ray))) == NULL)
@@ -57,7 +58,7 @@ int	main(int argc, char **argv)
 
 
 
-	plane_list = add_plane(new_vector3(0, -10, -10), new_vector3(0, 1, 0), 50, 0, wood);
+	plane_list = add_plane(new_vector3(-40, -10, -40), new_vector3(0, 1, 0), 50, 0, test);
 	plane_list_head = plane_list;
 
 	eye->pos = new_vector3(0, 0, 0);
